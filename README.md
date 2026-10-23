@@ -129,7 +129,7 @@ Do **not** claim a latency number such as `<200 ms` just from the architecture. 
 
 ## Portfolio positioning
 
-Use this as a single flagship project because it demonstrates a cohesive path from **enterprise documents -> retrieval -> LLM answer generation -> caching -> evaluation -> MLOps -> AWS infrastructure** rather than a collection of disconnected demos.
+Using this as a single flagship project because it demonstrates a cohesive path from **enterprise documents -> retrieval -> LLM answer generation -> caching -> evaluation -> MLOps -> AWS infrastructure** rather than a collection of disconnected demos.
 
 ## License
 
