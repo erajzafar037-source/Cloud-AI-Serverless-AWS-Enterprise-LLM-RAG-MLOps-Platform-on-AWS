@@ -19,6 +19,12 @@ variable "bedrock_kb_id" {
   description = "Existing Amazon Bedrock Knowledge Base ID."
 }
 
+variable "bedrock_data_source_id" {
+  type        = string
+  default     = ""
+  description = "Existing S3 data source ID attached to the Knowledge Base."
+}
+
 variable "bedrock_model_arn" {
   type        = string
   default     = ""
