@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI, HTTPException
 
 from app.config import settings
 from app.rag.service import RAGService
 from app.schemas import QueryRequest, QueryResponse
 
-app = FastAPI(title="Cloud AI Serverless AWS", version="1.0.0")
+logger = logging.getLogger(__name__)
+app = FastAPI(title="Cloud AI Serverless AWS", version="1.1.0")
 service = RAGService(settings)
 
 
@@ -20,7 +23,8 @@ def query(payload: QueryRequest) -> QueryResponse:
     try:
         result = service.query(payload.query, payload.top_k)
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+        logger.exception("RAG query failed")
+        raise HTTPException(status_code=502, detail="RAG query could not be completed.") from exc
 
     return QueryResponse(
         answer=result["answer"],
