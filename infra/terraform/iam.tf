@@ -5,12 +5,12 @@ resource "aws_iam_role_policy" "bedrock_and_s3" {
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [
       {
-        Sid      = "RetrieveAndGenerate"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "RetrieveAndGenerate"
+        Effect = "Allow"
+        Action = [
           "bedrock:RetrieveAndGenerate",
           "bedrock:InvokeModel"
         ]
