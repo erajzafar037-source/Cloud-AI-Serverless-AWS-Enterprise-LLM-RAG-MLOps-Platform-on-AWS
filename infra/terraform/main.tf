@@ -52,11 +52,11 @@ resource "aws_s3_bucket_notification" "documents" {
 }
 
 resource "aws_cloudwatch_event_rule" "document_created" {
-  name = "cloud-ai-document-created"
+  name          = "cloud-ai-document-created"
   event_pattern = jsonencode({
     source      = ["aws.s3"]
     detail-type = ["Object Created"]
-    detail = {
+    detail      = {
       bucket = { name = [aws_s3_bucket.documents.bucket] }
     }
   })
@@ -69,8 +69,8 @@ resource "aws_cloudwatch_event_target" "document_queue" {
 
 resource "aws_sqs_queue_policy" "eventbridge" {
   queue_url = aws_sqs_queue.ingestion.id
-  policy = jsonencode({
-    Version = "2012-10-17"
+  policy    = jsonencode({
+    Version   = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
       Principal = { Service = "events.amazonaws.com" }
@@ -97,13 +97,13 @@ resource "aws_sqs_queue" "ingestion" {
 }
 
 resource "aws_iam_role" "lambda_role" {
-  name = "cloud-ai-serverless-lambda-role"
+  name               = "cloud-ai-serverless-lambda-role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
+      Effect    = "Allow"
       Principal = { Service = "lambda.amazonaws.com" }
-      Action = "sts:AssumeRole"
+      Action    = "sts:AssumeRole"
     }]
   })
 }
@@ -148,7 +148,7 @@ resource "aws_lambda_function" "ingestion" {
       BEDROCK_REGION         = var.aws_region
       BEDROCK_KB_ID          = var.bedrock_kb_id
       BEDROCK_DATA_SOURCE_ID = var.bedrock_data_source_id
-      DOCUMENTS_BUCKET     = aws_s3_bucket.documents.bucket
+      DOCUMENTS_BUCKET       = aws_s3_bucket.documents.bucket
     }
   }
 }
