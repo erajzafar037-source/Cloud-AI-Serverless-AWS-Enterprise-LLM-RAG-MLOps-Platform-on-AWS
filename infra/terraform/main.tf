@@ -90,7 +90,7 @@ resource "aws_sqs_queue" "ingestion_dlq" {
 resource "aws_sqs_queue" "ingestion" {
   name                       = "cloud-ai-ingestion"
   visibility_timeout_seconds = 180
-  redrive_policy = jsonencode({
+  redrive_policy             = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.ingestion_dlq.arn
     maxReceiveCount     = 5
   })
@@ -148,7 +148,7 @@ resource "aws_lambda_function" "ingestion" {
       BEDROCK_REGION         = var.aws_region
       BEDROCK_KB_ID          = var.bedrock_kb_id
       BEDROCK_DATA_SOURCE_ID = var.bedrock_data_source_id
-      DOCUMENTS_BUCKET      = aws_s3_bucket.documents.bucket
+      DOCUMENTS_BUCKET     = aws_s3_bucket.documents.bucket
     }
   }
 }
