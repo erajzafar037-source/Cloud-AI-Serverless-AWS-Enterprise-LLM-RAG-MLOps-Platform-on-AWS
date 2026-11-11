@@ -9,6 +9,7 @@ A production-oriented reference architecture for serving enterprise RAG workload
 - **LLM/RAG:** Bedrock Knowledge Base retrieval + generation, citations, prompt versioning, configurable provider.
 - **MLOps:** reproducible evaluation set, retrieval/answer quality scoring, MLflow experiment logging, prompt/model registry pattern.
 - **AWS Cloud AI:** API Gateway, Lambda, S3, EventBridge, SQS, CloudWatch, IAM, Terraform.
+- **Document sync trigger:** S3 Object Created → EventBridge → SQS → Lambda → Bedrock StartIngestionJob.
 - **Production engineering:** Pydantic contracts, structured errors, Redis response caching, unit tests, benchmark script, CI.
 
 ## Architecture
@@ -120,10 +121,10 @@ Do **not** claim a latency number such as `<200 ms` just from the architecture. 
 
 ## Security posture
 
-- IAM roles are separated by workload.
+- The current reference uses one shared Lambda execution role; production hardening should split RAG, ingestion and MLOps into separate least-privilege roles.
 - Secrets are loaded from environment variables / AWS secret stores rather than committed.
 - API payloads are validated with Pydantic.
-- The cache is optional and can be disabled.
+- The local FastAPI service has an optional best-effort Redis cache. The deployed Lambda query path currently calls Bedrock directly.
 - Terraform uses public-access blocking for the document bucket.
 - CloudWatch logs are provisioned for operational visibility.
 
@@ -134,3 +135,12 @@ Using this as a single flagship project because it demonstrates a cohesive path 
 ## License
 
 MIT
+
+
+## Scope and deployment honesty
+
+- The S3 ingestion Lambda now calls Bedrock `StartIngestionJob`; it does not parse/chunk/embed documents itself. Chunking and embedding are managed by the preconfigured Bedrock Knowledge Base data source.
+- The Knowledge Base and S3 data source must be created/configured before applying the stack; they are not provisioned by this Terraform project.
+- The `lambdas/retraining` handler remains an event-trigger scaffold, not a production training pipeline.
+- No public endpoint, successful AWS deployment, latency SLO or real-world model quality is claimed until you deploy and measure it in your own AWS account.
+- Creating S3, SQS, Lambda, API Gateway and Bedrock resources may incur AWS charges. Destroy test infrastructure when finished.
