@@ -5,7 +5,7 @@ resource "aws_iam_role_policy" "bedrock_and_s3" {
   role = aws_iam_role.lambda_role.id
 
   policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [
       {
         Sid    = "RetrieveAndGenerate"
@@ -29,9 +29,9 @@ resource "aws_iam_role_policy" "bedrock_and_s3" {
         Resource = "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/${var.bedrock_kb_id}"
       },
       {
-        Sid      = "ReadDocumentsBucket"
-        Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:ListBucket"]
+        Sid    = "ReadDocumentsBucket"
+        Effect = "Allow"
+        Action = ["s3:GetObject", "s3:ListBucket"]
         Resource = [
           aws_s3_bucket.documents.arn,
           "${aws_s3_bucket.documents.arn}/*"
