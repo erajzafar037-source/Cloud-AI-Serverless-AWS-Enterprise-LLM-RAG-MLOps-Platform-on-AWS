@@ -20,5 +20,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
       - run: terraform -chdir=infra/terraform init -backend=false
-      - run: terraform -chdir=infra/terraform fmt -check
+      - run: terraform -chdir=infra/terraform fmt -check -diff
       - run: terraform -chdir=infra/terraform validate
