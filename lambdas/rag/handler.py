@@ -1,19 +1,24 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 
 import boto3
 
-
-client = boto3.client("bedrock-agent-runtime", region_name=os.getenv("BEDROCK_REGION", "eu-central-1"))
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+client = boto3.client(
+    "bedrock-agent-runtime",
+    region_name=os.getenv("BEDROCK_REGION", "eu-central-1"),
+)
 
 
 def _query_bedrock(question: str, top_k: int = 5) -> dict:
     kb_id = os.getenv("BEDROCK_KB_ID")
     model_arn = os.getenv("BEDROCK_MODEL_ARN")
     if not kb_id or not model_arn:
-        raise ValueError("BEDROCK_KB_ID and BEDROCK_MODEL_ARN must be configured")
+        raise RuntimeError("Bedrock Knowledge Base configuration is incomplete")
 
     response = client.retrieve_and_generate(
         input={"text": question},
@@ -57,13 +62,23 @@ def _response(status_code: int, body: dict) -> dict:
 
 
 def handler(event, context):
+    raw_body = (event or {}).get("body") or "{}"
     try:
-        raw_body = event.get("body") or "{}"
         payload = json.loads(raw_body) if isinstance(raw_body, str) else raw_body
-        question = str(payload.get("query", "")).strip()
-        if len(question) < 3:
-            return _response(400, {"error": "query must be at least 3 characters"})
-        top_k = min(max(int(payload.get("top_k", 5)), 1), 20)
-        return _response(200, _query_bedrock(question, top_k))
-    except Exception as exc:
-        return _response(502, {"error": str(exc)})
+    except (json.JSONDecodeError, TypeError):
+        return _response(400, {"error": "Request body must be valid JSON."})
+
+    if not isinstance(payload, dict):
+        return _response(400, {"error": "Request body must be a JSON object."})
+    question = payload.get("query")
+    if not isinstance(question, str) or not 3 <= len(question.strip()) <= 4000:
+        return _response(400, {"error": "query must contain between 3 and 4000 characters."})
+    top_k = payload.get("top_k", 5)
+    if isinstance(top_k, bool) or not isinstance(top_k, int) or not 1 <= top_k <= 20:
+        return _response(400, {"error": "top_k must be an integer between 1 and 20."})
+
+    try:
+        return _response(200, _query_bedrock(question.strip(), top_k))
+    except Exception:
+        logger.exception("Bedrock query failed")
+        return _response(502, {"error": "The knowledge-base query could not be completed."})
