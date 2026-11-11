@@ -8,9 +8,9 @@ resource "aws_iam_role_policy" "bedrock_and_s3" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "RetrieveAndGenerate"
-        Effect = "Allow"
-        Action = [
+        Sid      = "RetrieveAndGenerate"
+        Effect   = "Allow"
+        Action   = [
           "bedrock:RetrieveAndGenerate",
           "bedrock:InvokeModel"
         ]
@@ -29,18 +29,18 @@ resource "aws_iam_role_policy" "bedrock_and_s3" {
         Resource = "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/${var.bedrock_kb_id}"
       },
       {
-        Sid    = "ReadDocumentsBucket"
-        Effect = "Allow"
-        Action = ["s3:GetObject", "s3:ListBucket"]
+        Sid      = "ReadDocumentsBucket"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:ListBucket"]
         Resource = [
           aws_s3_bucket.documents.arn,
           "${aws_s3_bucket.documents.arn}/*"
         ]
       },
       {
-        Sid    = "ConsumeIngestionQueue"
-        Effect = "Allow"
-        Action = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
+        Sid      = "ConsumeIngestionQueue"
+        Effect   = "Allow"
+        Action   = ["sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"]
         Resource = aws_sqs_queue.ingestion.arn
       }
     ]
