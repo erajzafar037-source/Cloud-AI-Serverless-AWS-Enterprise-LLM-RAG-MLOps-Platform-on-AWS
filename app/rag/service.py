@@ -21,17 +21,20 @@ class RAGService:
             )
 
     def query(self, question: str, top_k: int = 5) -> dict:
-        cached = self.cache.get(question, top_k, self.settings.prompt_version)
-        if cached:
+        provider = self.settings.rag_provider
+        cached = self.cache.get(question, top_k, self.settings.prompt_version, provider)
+        if cached is not None:
             return {**cached, "cached": True}
 
-        if self.settings.rag_provider == "bedrock_kb":
+        if provider == "bedrock_kb":
             result = self.bedrock.query(question, top_k)
-            provider = "amazon_bedrock_knowledge_base"
+            provider_name = "amazon_bedrock_knowledge_base"
         else:
             result = mock_query(question, top_k)
-            provider = "mock"
+            provider_name = "mock"
 
-        result = {**result, "cached": False, "provider": provider}
-        self.cache.set(question, top_k, self.settings.prompt_version, result)
+        result = {**result, "cached": False, "provider": provider_name}
+        self.cache.set(
+            question, top_k, self.settings.prompt_version, result, provider=provider
+        )
         return result
