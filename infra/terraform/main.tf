@@ -85,7 +85,7 @@ resource "aws_cloudwatch_event_target" "document_queue" {
 resource "aws_sqs_queue_policy" "eventbridge" {
   queue_url = aws_sqs_queue.ingestion.id
   policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
       Principal = { Service = "events.amazonaws.com" }
