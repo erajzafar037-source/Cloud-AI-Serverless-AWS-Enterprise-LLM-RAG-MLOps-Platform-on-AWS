@@ -4,7 +4,7 @@
 
 - Local FastAPI mock mode is intended for localhost development only and does not authenticate callers.
 - The deployed API Gateway route is JWT protected by an Amazon Cognito user-pool authorizer.
-- The query Lambda has a separate role for Bedrock Knowledge Base retrieval/generation and model invocation. It has no S3 object-read or SQS-consumer permissions.
+- The query Lambda has a separate role for Bedrock Knowledge Base retrieval/generation and model invocation. Its `bedrock:Retrieve` permission is scoped to the configured Knowledge Base ARN; AWS documents `bedrock:RetrieveAndGenerate` as requiring `Resource: "*"`. The role has no S3 object-read or SQS-consumer permissions.
 - The ingestion Lambda has a separate role for starting Knowledge Base ingestion jobs and consuming only the ingestion queue. The Bedrock Knowledge Base data-source service role, not this Lambda, reads document objects from S3.
 - The documents bucket has public-access blocking, AES-256 server-side encryption, versioning and a policy denying non-TLS requests.
 - SQS queues use managed encryption, with a dead-letter queue configured.
