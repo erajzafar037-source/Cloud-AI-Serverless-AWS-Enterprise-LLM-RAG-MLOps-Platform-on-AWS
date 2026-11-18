@@ -1,0 +1,17 @@
+aws_region = "eu-central-1"
+
+# Choose a globally unique bucket name in your AWS account.
+documents_bucket_name = "replace-with-a-globally-unique-bucket-name"
+
+rag_provider = "bedrock_kb"
+bedrock_kb_id = "REPLACE_WITH_EXISTING_KNOWLEDGE_BASE_ID"
+bedrock_data_source_id = "REPLACE_WITH_EXISTING_DATA_SOURCE_ID"
+bedrock_model_arn = "REPLACE_WITH_ALLOWED_BEDROCK_MODEL_ARN"
+
+# The AWS account ID is appended to keep the Cognito domain prefix unique.
+cognito_domain_prefix = "cloud-ai-rag"
+oauth_callback_urls = ["http://localhost:3000/callback"]
+
+api_throttling_burst_limit = 10
+api_throttling_rate_limit = 5
+lambda_reserved_concurrency = 5

@@ -92,11 +92,11 @@ The application can run in `MOCK` mode without AWS credentials. Set `RAG_PROVIDE
 
 ## AWS path
 
-1. Upload enterprise documents to the Terraform-managed S3 bucket.
-2. Connect that bucket to an **Amazon Bedrock Knowledge Base** and configure your embedding/vector store.
-3. Set `BEDROCK_KB_ID` and `BEDROCK_MODEL_ARN` in the Lambda environment.
-4. Apply Terraform from `infra/terraform/`.
-5. Run `scripts/benchmark.py` against the deployed endpoint.
+1. Create an Amazon Bedrock Knowledge Base and an S3 data source; these remain explicit prerequisites.
+2. Copy `infra/terraform/terraform.tfvars.example` to `infra/terraform/terraform.tfvars` and provide your unique bucket name, Knowledge Base ID, data-source ID, model ARN and Cognito callback URL.
+3. Run `terraform -chdir=infra/terraform init`, `terraform -chdir=infra/terraform validate` and review `terraform -chdir=infra/terraform plan`.
+4. Apply only in a test account with budget alerts enabled. The deployed `POST /query` route requires a valid Cognito JWT.
+5. Upload a non-sensitive test document to the S3 source, complete/sync the Bedrock Knowledge Base and run `scripts/benchmark.py` against the deployed endpoint with a bearer token.
 
 The Terraform layer intentionally keeps the Bedrock Knowledge Base identifier configurable rather than embedding account-specific managed state into source control.
 
@@ -152,6 +152,8 @@ MIT
 
 
 ## Authentication and request protection
+
+The Terraform input example is `infra/terraform/terraform.tfvars.example`. Never commit a real tfvars file, Terraform state, account credentials or private data.
 
 The deployed API Gateway route is protected by an Amazon Cognito JWT authorizer. Use the OAuth 2.0 authorization-code flow with PKCE from a public browser/mobile client. Terraform outputs the user-pool ID, app-client ID, issuer and hosted UI domain. Set callback URL(s) to the exact URI(s) registered in oauth_callback_urls; do not disable JWT authorization to make the demo easier to call.
 
