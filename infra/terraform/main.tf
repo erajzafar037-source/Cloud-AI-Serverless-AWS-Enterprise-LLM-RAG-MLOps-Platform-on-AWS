@@ -85,7 +85,7 @@ resource "aws_cloudwatch_event_target" "document_queue" {
 resource "aws_sqs_queue_policy" "eventbridge" {
   queue_url = aws_sqs_queue.ingestion.id
   policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
       Principal = { Service = "events.amazonaws.com" }
@@ -101,7 +101,7 @@ resource "aws_sqs_queue_policy" "eventbridge" {
 resource "aws_iam_role" "rag_lambda_role" {
   name = "cloud-ai-rag-lambda-role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{ Effect = "Allow", Principal = { Service = "lambda.amazonaws.com" }, Action = "sts:AssumeRole" }]
   })
 }
@@ -109,7 +109,7 @@ resource "aws_iam_role" "rag_lambda_role" {
 resource "aws_iam_role" "ingestion_lambda_role" {
   name = "cloud-ai-ingestion-lambda-role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{ Effect = "Allow", Principal = { Service = "lambda.amazonaws.com" }, Action = "sts:AssumeRole" }]
   })
 }
@@ -117,7 +117,7 @@ resource "aws_iam_role" "ingestion_lambda_role" {
 resource "aws_iam_role" "mlops_lambda_role" {
   name = "cloud-ai-mlops-lambda-role"
   assume_role_policy = jsonencode({
-    Version = "2012-10-17"
+    Version   = "2012-10-17"
     Statement = [{ Effect = "Allow", Principal = { Service = "lambda.amazonaws.com" }, Action = "sts:AssumeRole" }]
   })
 }
@@ -138,15 +138,15 @@ resource "aws_iam_role_policy_attachment" "mlops_logs" {
 }
 
 resource "aws_lambda_function" "rag" {
-  function_name                    = "cloud-ai-rag"
-  role                             = aws_iam_role.rag_lambda_role.arn
-  runtime                          = "python3.12"
-  handler                          = "handler.handler"
-  filename                         = data.archive_file.rag_lambda.output_path
-  source_code_hash                 = data.archive_file.rag_lambda.output_base64sha256
-  timeout                          = 30
-  memory_size                      = 1024
-  reserved_concurrent_executions   = var.lambda_reserved_concurrency
+  function_name                  = "cloud-ai-rag"
+  role                           = aws_iam_role.rag_lambda_role.arn
+  runtime                        = "python3.12"
+  handler                        = "handler.handler"
+  filename                       = data.archive_file.rag_lambda.output_path
+  source_code_hash               = data.archive_file.rag_lambda.output_base64sha256
+  timeout                        = 30
+  memory_size                    = 1024
+  reserved_concurrent_executions = var.lambda_reserved_concurrency
   environment {
     variables = {
       RAG_PROVIDER      = var.rag_provider

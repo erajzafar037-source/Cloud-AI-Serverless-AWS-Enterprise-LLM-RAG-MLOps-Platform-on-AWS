@@ -2,7 +2,7 @@ data "aws_caller_identity" "current" {}
 
 locals {
   bedrock_knowledge_base_arn = "arn:aws:bedrock:${var.aws_region}:${data.aws_caller_identity.current.account_id}:knowledge-base/${var.bedrock_kb_id}"
-  bedrock_model_resource = var.bedrock_model_arn != "" ? var.bedrock_model_arn : "arn:aws:bedrock:${var.aws_region}::foundation-model/*"
+  bedrock_model_resource     = var.bedrock_model_arn != "" ? var.bedrock_model_arn : "arn:aws:bedrock:${var.aws_region}::foundation-model/*"
 }
 
 resource "aws_iam_role_policy" "rag_bedrock" {
