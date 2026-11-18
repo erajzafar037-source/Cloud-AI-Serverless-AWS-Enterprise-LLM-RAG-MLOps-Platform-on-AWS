@@ -31,9 +31,17 @@ def handler(event, context):
     for record in (event or {}).get("Records", []):
         body = record.get("body", "{}")
         message = json.loads(body) if isinstance(body, str) else body
-        detail = message.get("detail", {}) if isinstance(message, dict) else {}
-        bucket = detail.get("bucket", {}).get("name")
-        object_key = detail.get("object", {}).get("key")
+        if not isinstance(message, dict):
+            raise ValueError("SQS message must contain an EventBridge JSON object")
+
+        detail = message.get("detail", {})
+        if not isinstance(detail, dict):
+            raise ValueError("EventBridge detail must be an object")
+        bucket_detail = detail.get("bucket", {})
+        object_detail = detail.get("object", {})
+        bucket = bucket_detail.get("name") if isinstance(bucket_detail, dict) else None
+        object_key = object_detail.get("key") if isinstance(object_detail, dict) else None
+
         if message.get("source") != "aws.s3" or not bucket or not object_key:
             raise ValueError("SQS message is not a valid EventBridge S3 Object Created event")
         if bucket != expected_bucket:

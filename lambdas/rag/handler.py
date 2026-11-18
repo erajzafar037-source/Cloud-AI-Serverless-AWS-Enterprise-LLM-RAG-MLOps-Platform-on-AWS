@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import logging
 import os
@@ -62,7 +64,14 @@ def _response(status_code: int, body: dict) -> dict:
 
 
 def handler(event, context):
-    raw_body = (event or {}).get("body") or "{}"
+    request_event = event or {}
+    raw_body = request_event.get("body") or "{}"
+    if request_event.get("isBase64Encoded") and isinstance(raw_body, str):
+        try:
+            raw_body = base64.b64decode(raw_body, validate=True).decode("utf-8")
+        except (binascii.Error, UnicodeDecodeError):
+            return _response(400, {"error": "Request body must be valid base64-encoded UTF-8."})
+
     try:
         payload = json.loads(raw_body) if isinstance(raw_body, str) else raw_body
     except (json.JSONDecodeError, TypeError):
@@ -80,5 +89,6 @@ def handler(event, context):
     try:
         return _response(200, _query_bedrock(question.strip(), top_k))
     except Exception:
+        # Do not return cloud/provider exception details to API callers.
         logger.exception("Bedrock query failed")
         return _response(502, {"error": "The knowledge-base query could not be completed."})
