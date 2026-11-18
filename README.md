@@ -195,10 +195,18 @@ terraform -chdir=infra/terraform destroy
 ```
 
 Terraform destruction removes the API, Lambdas, queues, roles, event rules, log
-groups and the managed documents bucket. The documents bucket is versioned; if
-you deliberately retain objects, empty **all object versions and delete markers**
-before destroy. Do not use a broad bucket deletion command against a bucket that
-contains data you need. The Bedrock Knowledge Base and its data source are external
+groups and the managed documents bucket. The documents bucket is versioned, so
+permanently empty **all object versions and delete markers** before destroy. The
+following helper requires you to repeat the exact bucket name because deletion is
+irreversible:
+
+```bash
+python scripts/empty_versioned_bucket.py --bucket "$DOCUMENTS_BUCKET" --confirm-bucket "$DOCUMENTS_BUCKET"
+terraform -chdir=infra/terraform destroy
+```
+
+Do not run this against a bucket containing data you need. The helper uses the S3
+version-listing API and deletes versions and delete markers in batches. The Bedrock Knowledge Base and its data source are external
 prerequisites and must be deleted separately only if they were created solely for
 this test. Review the AWS account for retained Bedrock resources, S3 versions,
 CloudWatch log groups, and other billable resources after destroy.
