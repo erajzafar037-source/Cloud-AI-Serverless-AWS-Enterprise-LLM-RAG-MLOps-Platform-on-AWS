@@ -160,3 +160,62 @@ The deployed API Gateway route is protected by an Amazon Cognito JWT authorizer.
 Local FastAPI mock mode is intentionally unauthenticated for localhost development only. Do not expose that development server to the public internet.
 
 See docs/security-controls.md for trust boundaries and a deployment checklist.
+
+
+## Deployed integration test
+
+The regular CI suite deliberately skips deployed AWS tests. To verify the complete
+S3 -> EventBridge -> SQS -> ingestion Lambda -> Bedrock Knowledge Base -> authenticated
+API path, configure a disposable AWS environment and obtain a Cognito bearer token:
+
+```bash
+export AWS_REGION=eu-central-1
+export DOCUMENTS_BUCKET=your-test-documents-bucket
+export BEDROCK_KB_ID=your-knowledge-base-id
+export BEDROCK_DATA_SOURCE_ID=your-data-source-id
+export RAG_API_URL=https://your-api-id.execute-api.eu-central-1.amazonaws.com
+export RAG_BEARER_TOKEN=your-short-lived-cognito-access-token
+export RUN_AWS_INTEGRATION=1
+pytest -q -m integration tests/integration
+```
+
+The test uploads a unique text document, waits for a completed Bedrock ingestion
+job, asks the protected API for its unique phrase, verifies the answer and citation,
+and removes all versions/delete markers for the test object. It can take several
+minutes and incurs AWS charges. The test does not create or delete the Knowledge
+Base, data source, or Terraform stack.
+
+## Cleanup (AWS test stack)
+
+After saving any evaluation results you need, destroy the Terraform-managed stack:
+
+```bash
+terraform -chdir=infra/terraform plan -destroy
+terraform -chdir=infra/terraform destroy
+```
+
+Terraform destruction removes the API, Lambdas, queues, roles, event rules, log
+groups and the managed documents bucket. The documents bucket is versioned, so
+permanently empty **all object versions and delete markers** before destroy. The
+following helper requires you to repeat the exact bucket name because deletion is
+irreversible:
+
+```bash
+python scripts/empty_versioned_bucket.py --bucket "$DOCUMENTS_BUCKET" --confirm-bucket "$DOCUMENTS_BUCKET"
+terraform -chdir=infra/terraform destroy
+```
+
+Do not run this against a bucket containing data you need. The helper uses the S3
+version-listing API and deletes versions and delete markers in batches. The Bedrock Knowledge Base and its data source are external
+prerequisites and must be deleted separately only if they were created solely for
+this test. Review the AWS account for retained Bedrock resources, S3 versions,
+CloudWatch log groups, and other billable resources after destroy.
+
+## RAG demo consolidation
+
+The original [RAG-Application-with-AWS](https://github.com/erajzafar037-source/-RAG-Application-with-AWS)
+repository is retained as an architecture note, not a second implementation.
+The flagship already contains the executable ingestion/query path, Terraform,
+evaluation and CI. See [the consolidation decision](docs/rag-demo-consolidation.md)
+for the component mapping and the reason this project uses a managed Bedrock
+Knowledge Base rather than provisioning a duplicate OpenSearch stack.
