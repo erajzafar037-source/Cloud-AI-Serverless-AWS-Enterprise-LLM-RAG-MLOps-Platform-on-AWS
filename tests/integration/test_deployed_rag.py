@@ -67,7 +67,7 @@ def test_s3_ingestion_then_authenticated_rag_query():
         response = httpx.post(
             f"{api_url}/query",
             headers={"Authorization": f"Bearer {token}"},
-            json={"query": f"What is the integration verification phrase {sentinel}?", "top_k": 5},
+            json={"query": "What exact phrase follows 'Integration verification phrase' in the newly uploaded integration test document?", "top_k": 5},
             timeout=90,
         )
         assert response.status_code == 200, response.text
