@@ -12,10 +12,17 @@ resource "aws_iam_role_policy" "rag_bedrock" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid      = "KnowledgeBaseQuery"
+        Sid      = "RetrieveSpecificKnowledgeBase"
         Effect   = "Allow"
-        Action   = ["bedrock:RetrieveAndGenerate", "bedrock:Retrieve"]
+        Action   = ["bedrock:Retrieve"]
         Resource = local.bedrock_knowledge_base_arn
+      },
+      {
+        # AWS documents RetrieveAndGenerate as requiring Resource="*".
+        Sid      = "RetrieveAndGenerate"
+        Effect   = "Allow"
+        Action   = ["bedrock:RetrieveAndGenerate"]
+        Resource = "*"
       },
       {
         Sid      = "InvokeConfiguredModel"
