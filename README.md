@@ -121,6 +121,11 @@ Do **not** claim a latency number such as `<200 ms` just from the architecture. 
 
 ## Security posture
 
+- Deployed API Gateway `POST /query` requires a Cognito JWT (OAuth 2.0 authorization-code flow); use PKCE from browser/mobile clients and configure exact callback URLs.
+- API Gateway throttling and reserved Lambda concurrency cap request volume and accidental spend.
+- Query, ingestion and MLOps Lambdas use separate execution roles; the query role does not read S3 or consume SQS, and the ingestion role does not invoke foundation models.
+- The documents bucket blocks public access, enforces encryption at rest and TLS in transit, and has versioning enabled. SQS queues use managed encryption.
+
 - The current reference uses one shared Lambda execution role; production hardening should split RAG, ingestion and MLOps into separate least-privilege roles.
 - Secrets are loaded from environment variables / AWS secret stores rather than committed.
 - API payloads are validated with Pydantic.
@@ -140,7 +145,16 @@ MIT
 ## Scope and deployment honesty
 
 - The S3 ingestion Lambda now calls Bedrock `StartIngestionJob`; it does not parse/chunk/embed documents itself. Chunking and embedding are managed by the preconfigured Bedrock Knowledge Base data source.
-- The Knowledge Base and S3 data source must be created/configured before applying the stack; they are not provisioned by this Terraform project.
+- The Knowledge Base and S3 data source must be created/configured before applying the stack; they are not provisioned by this Terraform project. Set `cognito_domain_prefix` and `oauth_callback_urls` in your local Terraform variables. Use the outputs for the Cognito hosted UI domain, user-pool issuer and public app-client ID; the deployed API rejects requests without a valid JWT.
 - The `lambdas/retraining` handler remains an event-trigger scaffold, not a production training pipeline.
 - No public endpoint, successful AWS deployment, latency SLO or real-world model quality is claimed until you deploy and measure it in your own AWS account.
 - Creating S3, SQS, Lambda, API Gateway and Bedrock resources may incur AWS charges. Destroy test infrastructure when finished.
+
+
+## Authentication and request protection
+
+The deployed API Gateway route is protected by an Amazon Cognito JWT authorizer. Use the OAuth 2.0 authorization-code flow with PKCE from a public browser/mobile client. Terraform outputs the user-pool ID, app-client ID, issuer and hosted UI domain. Set callback URL(s) to the exact URI(s) registered in oauth_callback_urls; do not disable JWT authorization to make the demo easier to call.
+
+Local FastAPI mock mode is intentionally unauthenticated for localhost development only. Do not expose that development server to the public internet.
+
+See docs/security-controls.md for trust boundaries and a deployment checklist.
